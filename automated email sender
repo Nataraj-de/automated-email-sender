@@ -1,0 +1,64 @@
+import smtplib
+import schedule
+import time
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+# Function to send an email
+def send_email(sender_email, sender_password, recipient_email, subject, body):
+    # Set up the SMTP server (Gmail in this case)
+    smtp_server = "smtp.gmail.com"
+    smtp_port = 587
+
+    # Compose the email
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = recipient_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        # Connect to the SMTP server
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()  # Secure the connection
+        server.login(sender_email, sender_password)  # Log in
+
+        # Send the email
+        server.sendmail(sender_email, recipient_email, msg.as_string())
+        print(f"Email sent to {recipient_email} successfully!")
+
+        server.quit()
+    except Exception as e:
+        print(f"Error sending email: {e}")
+
+# Function to schedule email
+def schedule_email(sender_email, sender_password, recipient_email, subject, body, send_time):
+    schedule.clear()  # Clear any previous schedule
+    schedule.every().day.at(send_time).do(send_email, sender_email, sender_password, recipient_email, subject, body)
+    print(f"Email scheduled to {recipient_email} at {send_time}")
+
+# Main function to allow user to compose and schedule emails
+def main():
+    print("Welcome to the Email Scheduler!")
+
+    # Email account details (you can replace this with inputs or securely store)
+    sender_email = input("Enter your Gmail address: ")
+    sender_password = input("Enter your Gmail password (it’s recommended to use an app password for Gmail): ")
+
+    # Compose email
+    recipient_email = input("Enter the recipient's email address: ")
+    subject = input("Enter the subject of the email: ")
+    body = input("Enter the body of the email: ")
+
+    # Schedule email
+    send_time = input("Enter time to send the email (HH:MM format, 24-hour clock): ")
+    schedule_email(sender_email, sender_password, recipient_email, subject, body, send_time)
+
+    # Keep the script running to execute the scheduled task
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+if __name__ == "__main__":
+    main()
+
